@@ -23,9 +23,6 @@ public class StartServ {
     @Autowired
     DefaultSmppServerHandler defaultSmppServerHandler;
 
-//    @Autowired
-//    DefaultSmppServerHandler defaultSmppServerHandlerDM;
-
     @Autowired
     DefaultSmppServerConfiguration defaultSmppServerConfiguration;
 
@@ -52,7 +49,6 @@ public class StartServ {
     public void defaultSmppServer() {
         DefaultSmppServer server = new DefaultSmppServer(defaultSmppServerConfiguration, defaultSmppServerHandler, executor, monitorExecutor);
       //  DefaultSmppServer server = new DefaultSmppServer(defaultSmppServerConfiguration, defaultSmppServerHandlerDM, executor, monitorExecutor);
-
 
         try {
             server.start();
