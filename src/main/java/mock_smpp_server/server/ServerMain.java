@@ -7,11 +7,16 @@ import com.cloudhopper.smpp.pdu.DeliverSmResp;
 import com.cloudhopper.smpp.pdu.PduRequest;
 import com.cloudhopper.smpp.pdu.PduResponse;
 import com.cloudhopper.smpp.type.Address;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static mock_smpp_server.smpp.DefaultSmppServerHandler.listSmppSessions;
 
@@ -21,20 +26,26 @@ public class ServerMain {
     Logger logger = LoggerFactory.getLogger(ServerMain.class);
 
     @GetMapping("/send/{client}")
-    public String getting(@PathVariable Integer client) {
-        if (client > listSmppSessions.size() - 1)
-            return "Bad request";
+    public String gettingSessionByBame(@PathVariable String client) {
+        if (!listSmppSessions.containsKey(client))
+            return null;
 
-        for (SmppSession session : listSmppSessions) {
-            logger.info("Hash code of session - " + session.toString().hashCode());
+        // if you need to test DeliverSM
+        //sendMoMessage(listSmppSessions.get(client));
 
-            sendMoMessage(session);
-
-        }
-
-        return "OK";
+        return listSmppSessions.get(client).toString();
     }
 
+    @GetMapping("/send/all")
+    @ResponseBody
+    public List<String> gettingall() {
+
+        for (SmppSession session : listSmppSessions.values()) {
+            logger.info("Hash code of session - " + session.toString().hashCode());
+            sendMoMessage(session);
+        }
+        return listSmppSessions.entrySet().stream().map(v -> v.getKey() + " - " + v.getValue().toString()).collect(Collectors.toList());
+    }
 
     private void sendMoMessage(SmppSession session) {
 
@@ -59,7 +70,6 @@ public class ServerMain {
             logger.error("Error!", e);
         }
         sendRequestPdu(session, pdu0);
-
     }
 
     private void sendRequestPdu(SmppSession session, DeliverSm pdu0) {
@@ -76,7 +86,6 @@ public class ServerMain {
         } catch (Exception e) {
         }
     }
-
 }
 
 

@@ -7,7 +7,7 @@ import com.cloudhopper.smpp.SmppSessionConfiguration;
 import com.cloudhopper.smpp.pdu.BaseBind;
 import com.cloudhopper.smpp.pdu.BaseBindResp;
 import com.cloudhopper.smpp.type.SmppProcessingException;
-import mock_smpp_server.connection.TestSmppSessionHandlerDM;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -15,14 +15,16 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+
+import mock_smpp_server.connection.TestSmppSessionHandlerDM;
 
 @Component
-public  class DefaultSmppServerHandler implements SmppServerHandler, ApplicationContextAware {
-    public static List<SmppSession> listSmppSessions = new ArrayList<SmppSession>();
-
+public class DefaultSmppServerHandler implements SmppServerHandler, ApplicationContextAware {
+    public static Map<String, SmppSession> listSmppSessions = new HashMap<>();
     private static final Logger logger = LoggerFactory.getLogger(DefaultSmppServerHandler.class);
+    private int sessionCount;
 
     ApplicationContext applicationContext;
 
@@ -30,23 +32,18 @@ public  class DefaultSmppServerHandler implements SmppServerHandler, Application
     public void sessionBindRequested(Long aLong, SmppSessionConfiguration smppSessionConfiguration, BaseBind baseBind) throws SmppProcessingException {
         logger.info("The bind was requested!!!!!!!!!!");
         smppSessionConfiguration.setName("Application.SMPP." + smppSessionConfiguration.getSystemId());
-
     }
 
     @Override
     public void sessionCreated(Long aLong, SmppServerSession smppServerSession, BaseBindResp baseBindResp) throws SmppProcessingException {
         logger.info("The bind was created!!!!!!!!!!");
 
-//        TestSmppSessionHandler testSmppSessionHandler = (TestSmppSessionHandler)applicationContext.getBean("testSmppSessionHandler");
-//        logger.info("Hashcode of this session testSmppSessionHandler -" + testSmppSessionHandler.toString().hashCode() + "; smppServerSession - " + smppServerSession.toString().hashCode());
-//        smppServerSession.serverReady(testSmppSessionHandler.setSession(smppServerSession));
-
-        TestSmppSessionHandlerDM testSmppSessionHandlerDM = (TestSmppSessionHandlerDM)applicationContext.getBean("testSmppSessionHandlerDM");
+        TestSmppSessionHandlerDM testSmppSessionHandlerDM = (TestSmppSessionHandlerDM) applicationContext.getBean("testSmppSessionHandlerDM");
         logger.info("Hashcode of this session testSmppSessionHandlerDM -" + testSmppSessionHandlerDM.toString().hashCode() + "; smppServerSession - " + smppServerSession.toString().hashCode());
         smppServerSession.serverReady(testSmppSessionHandlerDM.setSession(smppServerSession));
 
-        listSmppSessions.add(smppServerSession);
-
+        testSmppSessionHandlerDM.setName("session-" + sessionCount++);
+        listSmppSessions.put(testSmppSessionHandlerDM.getName(), smppServerSession);
     }
 
     @Override
@@ -56,12 +53,10 @@ public  class DefaultSmppServerHandler implements SmppServerHandler, Application
         if (smppServerSession.hasCounters()) {
             logger.info(" final session rx-submitSM: {}", smppServerSession.getCounters().getRxSubmitSM());
         }
-
     }
-
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-    this.applicationContext = applicationContext;
+        this.applicationContext = applicationContext;
     }
 }
