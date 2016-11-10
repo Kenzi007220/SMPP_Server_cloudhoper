@@ -8,6 +8,13 @@
     <artifactId>mock-smpp-server</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jdk.version>1.8</jdk.version>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+    </properties>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
