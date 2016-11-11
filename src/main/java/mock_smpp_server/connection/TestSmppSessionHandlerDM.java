@@ -1,7 +1,9 @@
 package mock_smpp_server.connection;
 
+import com.cloudhopper.commons.charset.CharsetUtil;
 import com.cloudhopper.smpp.SmppSession;
 import com.cloudhopper.smpp.impl.DefaultSmppSessionHandler;
+import com.cloudhopper.smpp.pdu.BaseSm;
 import com.cloudhopper.smpp.pdu.PduRequest;
 import com.cloudhopper.smpp.pdu.PduResponse;
 import com.cloudhopper.smpp.type.Address;
@@ -11,10 +13,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 
-import javax.xml.bind.DatatypeConverter;
+import static com.cloudhopper.commons.charset.CharsetUtil.CHARSET_GSM;
+import static com.cloudhopper.smpp.SmppConstants.CMD_ID_DATA_SM;
+import static com.cloudhopper.smpp.SmppConstants.CMD_ID_DELIVER_SM;
+import static com.cloudhopper.smpp.SmppConstants.CMD_ID_ENQUIRE_LINK;
+import static com.cloudhopper.smpp.SmppConstants.CMD_ID_SUBMIT_SM;
 
 @Component
 @Scope("prototype")
@@ -36,59 +41,28 @@ public class TestSmppSessionHandlerDM extends DefaultSmppSessionHandler {
     public PduResponse firePduRequestReceived(PduRequest pduRequest) {
         // logger.info(pduRequest.getCommandId());
 
-        String[] test = pduRequest.toString().trim().split("\\s+");
-        DecodeMessage(test);
+        // decode shortMessage
+        if (pduRequest.getCommandId() == CMD_ID_SUBMIT_SM ||
+                pduRequest.getCommandId() == CMD_ID_DELIVER_SM ||
+                pduRequest.getCommandId() == CMD_ID_DATA_SM ||
+                pduRequest.getCommandId() == CMD_ID_ENQUIRE_LINK) {
+
+            BaseSm requestWithMessage = (BaseSm) pduRequest;
+
+            byte[] byteMessage = requestWithMessage.getShortMessage();
+            String message = CharsetUtil.decode(byteMessage, CHARSET_GSM);
+            logger.info("You recieve a messege ----> " + message + " <---- , dest adress - " +
+                    requestWithMessage.getDestAddress() + ", delivery adress - " + requestWithMessage.getSourceAddress());
+        }
 
         SmppSession session = sessionRef.get();
 
         PduResponse response = pduRequest.createResponse();
 
-//        if (pduRequest.getCommandId() == SmppConstants.CMD_ID_SUBMIT_SM) {
-//            SubmitSm mt = (SubmitSm) pduRequest;
-//            Address mtSourceAddress = mt.getSourceAddress();
-//            Address mtDestinationAddress = mt.getDestAddress();
-//            byte dataCoding = mt.getDataCoding();
-//            byte[] shortMessage = mt.getShortMessage();
-//
-//            sendDeliveryReceipt(session, mtDestinationAddress, mtSourceAddress, dataCoding);
-//            sendMoMessage(session, mtDestinationAddress, mtSourceAddress, shortMessage, dataCoding);
-//        }
-
-
-//            DeliverSm mt = (DeliverSm) pduRequest;
-//            byte dataCoding = mt.getDataCoding();
-//            byte[] shortMessage = mt.getShortMessage();
-
-        //sendDeliveryReceipt(session, mtDestinationAddress, mtSourceAddress, dataCoding);
-        //sendMoMessage(session);
-
-
         // sendMoMessage(session,shortMessage, dataCoding);
 
         return response;
     }
-
-    private void DecodeMessage(String[] message) {
-
-        for (int i = 0; i < message.length; i++) {
-            if (message[i].equalsIgnoreCase("message")) {
-                System.out.println("Contain massage");
-                String werb;
-
-                werb = message[i + 1];
-                String correctWerb = werb.replaceAll("\\[|\\]|\\)", "");
-
-                byte[] bytes = DatatypeConverter.parseHexBinary(correctWerb);
-                try {
-                    String result = new String(bytes, "UTF-8");
-                    logger.info("Your message is - " + result);
-                } catch (UnsupportedEncodingException e) {
-                    logger.info("cannot unparse massage");
-                }
-            }
-        }
-    }
-
 
     private void sendDeliveryReceipt(SmppSession session, Address mtDestinationAddress, Address mtSourceAddress, byte dataCoding) {
 
