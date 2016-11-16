@@ -1,5 +1,7 @@
 package mock_smpp_server.smpp;
 
+import com.cloudhopper.commons.charset.Charset;
+import com.cloudhopper.commons.charset.CharsetUtil;
 import com.cloudhopper.smpp.SmppServerHandler;
 import com.cloudhopper.smpp.SmppServerSession;
 import com.cloudhopper.smpp.SmppSession;
@@ -22,6 +24,7 @@ import mock_smpp_server.connection.TestSmppSessionHandlerDM;
 
 @Component
 public class DefaultSmppServerHandler implements SmppServerHandler, ApplicationContextAware {
+    public static Charset charset = CharsetUtil.CHARSET_GSM; //default
     public static Map<String, SmppSession> listSmppSessions = new HashMap<>();
     private static final Logger logger = LoggerFactory.getLogger(DefaultSmppServerHandler.class);
     private int sessionCount;

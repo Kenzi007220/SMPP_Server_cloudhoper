@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import mock_smpp_server.util.DataCodingToCharsetUtil;
+
+import static mock_smpp_server.smpp.DefaultSmppServerHandler.charset;
 import static mock_smpp_server.smpp.DefaultSmppServerHandler.listSmppSessions;
 
 @RestController
@@ -26,7 +29,7 @@ public class ServerMain {
     Logger logger = LoggerFactory.getLogger(ServerMain.class);
 
     @GetMapping("/send/{client}")
-    public String gettingSessionByBame(@PathVariable String client) {
+    public String gettingSessionByName(@PathVariable String client) {
         if (!listSmppSessions.containsKey(client))
             return null;
 
@@ -42,12 +45,21 @@ public class ServerMain {
 
         for (SmppSession session : listSmppSessions.values()) {
             logger.info("Hash code of session - " + session.toString().hashCode());
-            sendMoMessage(session);
+            sendMoMessage(session, 0);
         }
         return listSmppSessions.entrySet().stream().map(v -> v.getKey() + " - " + v.getValue().toString()).collect(Collectors.toList());
     }
 
-    private void sendMoMessage(SmppSession session) {
+    @GetMapping("/charset/{charsetNum}")
+    public String gettingallCheckCharset(@PathVariable Integer charsetNum) {
+        charset = DataCodingToCharsetUtil.getCharacterSet((charsetNum));
+
+        return " succesfull changed charset to " + charset ;
+    }
+
+
+
+    private void sendMoMessage(SmppSession session,Integer charset) {
 
         DeliverSm pdu0 = new DeliverSm();
 
@@ -62,6 +74,7 @@ public class ServerMain {
         pdu0.setRegisteredDelivery((byte) 0x00);
         pdu0.setReplaceIfPresent((byte) 0x00);
         pdu0.setDataCoding((byte) 0x00);
+
         pdu0.setDefaultMsgId((byte) 0x00);
 
         try {

@@ -1,5 +1,6 @@
 package mock_smpp_server.connection;
 
+import com.cloudhopper.commons.charset.Charset;
 import com.cloudhopper.commons.charset.CharsetUtil;
 import com.cloudhopper.smpp.SmppSession;
 import com.cloudhopper.smpp.impl.DefaultSmppSessionHandler;
@@ -15,11 +16,11 @@ import org.springframework.stereotype.Component;
 
 import java.lang.ref.WeakReference;
 
-import static com.cloudhopper.commons.charset.CharsetUtil.CHARSET_GSM;
 import static com.cloudhopper.smpp.SmppConstants.CMD_ID_DATA_SM;
 import static com.cloudhopper.smpp.SmppConstants.CMD_ID_DELIVER_SM;
 import static com.cloudhopper.smpp.SmppConstants.CMD_ID_ENQUIRE_LINK;
 import static com.cloudhopper.smpp.SmppConstants.CMD_ID_SUBMIT_SM;
+import static mock_smpp_server.smpp.DefaultSmppServerHandler.charset;
 
 @Component
 @Scope("prototype")
@@ -50,9 +51,11 @@ public class TestSmppSessionHandlerDM extends DefaultSmppSessionHandler {
             BaseSm requestWithMessage = (BaseSm) pduRequest;
 
             byte[] byteMessage = requestWithMessage.getShortMessage();
-            String message = CharsetUtil.decode(byteMessage, CHARSET_GSM);
+            String message = CharsetUtil.decode(byteMessage, charset);
+            System.out.println(charset);
             logger.info("You recieve a messege ----> " + message + " <---- , dest adress - " +
-                    requestWithMessage.getDestAddress() + ", delivery adress - " + requestWithMessage.getSourceAddress());
+                    requestWithMessage.getDestAddress() + ", delivery adress - " + requestWithMessage.getSourceAddress() +
+                    " charset - " + charset);
         }
 
         SmppSession session = sessionRef.get();
@@ -90,4 +93,21 @@ public class TestSmppSessionHandlerDM extends DefaultSmppSessionHandler {
         this.sessionRef = new WeakReference<SmppSession>(session);
         return this;
     }
+
+    public static Charset getCharacterSet(int code) {
+
+        switch (code) {
+            case 0:
+                return CharsetUtil.CHARSET_ISO_8859_1;
+            case 4:
+                return CharsetUtil.CHARSET_GSM8;
+            case 8:
+                return CharsetUtil.CHARSET_UCS_2;
+            default:
+                return CharsetUtil.CHARSET_GSM;
+        }
+    }
 }
+
+
+
