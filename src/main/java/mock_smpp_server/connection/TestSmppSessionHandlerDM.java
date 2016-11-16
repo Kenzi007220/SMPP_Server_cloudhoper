@@ -1,6 +1,5 @@
 package mock_smpp_server.connection;
 
-import com.cloudhopper.commons.charset.Charset;
 import com.cloudhopper.commons.charset.CharsetUtil;
 import com.cloudhopper.smpp.SmppSession;
 import com.cloudhopper.smpp.impl.DefaultSmppSessionHandler;
@@ -92,20 +91,6 @@ public class TestSmppSessionHandlerDM extends DefaultSmppSessionHandler {
     public TestSmppSessionHandlerDM setSession(SmppSession session) {
         this.sessionRef = new WeakReference<SmppSession>(session);
         return this;
-    }
-
-    public static Charset getCharacterSet(int code) {
-
-        switch (code) {
-            case 0:
-                return CharsetUtil.CHARSET_ISO_8859_1;
-            case 4:
-                return CharsetUtil.CHARSET_GSM8;
-            case 8:
-                return CharsetUtil.CHARSET_UCS_2;
-            default:
-                return CharsetUtil.CHARSET_GSM;
-        }
     }
 }
 
