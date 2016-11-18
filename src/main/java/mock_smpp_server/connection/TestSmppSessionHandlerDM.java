@@ -17,7 +17,6 @@ import java.lang.ref.WeakReference;
 
 import static com.cloudhopper.smpp.SmppConstants.CMD_ID_DATA_SM;
 import static com.cloudhopper.smpp.SmppConstants.CMD_ID_DELIVER_SM;
-import static com.cloudhopper.smpp.SmppConstants.CMD_ID_ENQUIRE_LINK;
 import static com.cloudhopper.smpp.SmppConstants.CMD_ID_SUBMIT_SM;
 import static mock_smpp_server.smpp.DefaultSmppServerHandler.charset;
 
@@ -44,8 +43,8 @@ public class TestSmppSessionHandlerDM extends DefaultSmppSessionHandler {
         // decode shortMessage
         if (pduRequest.getCommandId() == CMD_ID_SUBMIT_SM ||
                 pduRequest.getCommandId() == CMD_ID_DELIVER_SM ||
-                pduRequest.getCommandId() == CMD_ID_DATA_SM ||
-                pduRequest.getCommandId() == CMD_ID_ENQUIRE_LINK) {
+                pduRequest.getCommandId() == CMD_ID_DATA_SM)
+        {
 
             BaseSm requestWithMessage = (BaseSm) pduRequest;
 

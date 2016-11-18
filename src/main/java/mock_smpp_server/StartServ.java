@@ -45,7 +45,9 @@ public class StartServ {
     });
 
     public static void main(String[] args) throws Exception {
+
         SpringApplication.run(StartServ.class, args);
+
     }
 
     @PostConstruct
@@ -57,5 +59,6 @@ public class StartServ {
             logger.error("Error starting server...", e);
         }
     }
+
 
 }

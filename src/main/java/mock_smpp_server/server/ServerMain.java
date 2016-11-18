@@ -43,23 +43,24 @@ public class ServerMain {
     @ResponseBody
     public List<String> gettingall() {
 
-        for (SmppSession session : listSmppSessions.values()) {
-            logger.info("Hash code of session - " + session.toString().hashCode());
-            sendMoMessage(session, 0);
-        }
+        listSmppSessions.values().stream().forEach(smppSession -> sendMessageAndShowLogger(smppSession)); // if you need to test DeliverSM
+
         return listSmppSessions.entrySet().stream().map(v -> v.getKey() + " - " + v.getValue().toString()).collect(Collectors.toList());
+    }
+
+    private void sendMessageAndShowLogger(SmppSession smppSession) {
+        logger.info("Hash code of session - " + smppSession.toString().hashCode());
+        sendMoMessage(smppSession, 0);
     }
 
     @GetMapping("/charset/{charsetNum}")
     public String gettingallCheckCharset(@PathVariable Integer charsetNum) {
         charset = DataCodingToCharsetUtil.getCharacterSet((charsetNum));
 
-        return " succesfull changed charset to " + charset ;
+        return " succesfull changed charset to " + charset;
     }
 
-
-
-    private void sendMoMessage(SmppSession session,Integer charset) {
+    private void sendMoMessage(SmppSession session, Integer charset) {
 
         DeliverSm pdu0 = new DeliverSm();
 
