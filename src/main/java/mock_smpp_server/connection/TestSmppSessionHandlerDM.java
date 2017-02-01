@@ -15,83 +15,88 @@ import org.springframework.stereotype.Component;
 
 import java.lang.ref.WeakReference;
 
-import static com.cloudhopper.smpp.SmppConstants.CMD_ID_DATA_SM;
-import static com.cloudhopper.smpp.SmppConstants.CMD_ID_DELIVER_SM;
-import static com.cloudhopper.smpp.SmppConstants.CMD_ID_SUBMIT_SM;
+import static com.cloudhopper.smpp.SmppConstants.*;
 import static mock_smpp_server.smpp.DefaultSmppServerHandler.charset;
 
 @Component
 @Scope("prototype")
 public class TestSmppSessionHandlerDM extends DefaultSmppSessionHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(TestSmppSessionHandlerDM.class);
-    private WeakReference<SmppSession> sessionRef;
+  private static final Logger logger = LoggerFactory.getLogger(TestSmppSessionHandlerDM.class);
+  private WeakReference<SmppSession> sessionRef;
 
-    private String name;
+  private String name;
 
-    public TestSmppSessionHandlerDM() {
+  public TestSmppSessionHandlerDM() {}
+
+  public TestSmppSessionHandlerDM(SmppSession session) {
+    this.sessionRef = new WeakReference<SmppSession>(session);
+  }
+
+  @Override
+  public PduResponse firePduRequestReceived(PduRequest pduRequest) {
+    // logger.info(pduRequest.getCommandId());
+
+    // decode shortMessage
+
+    logger.info(" Pdu request is ---> " + pduRequest.getCommandStatus() + " Id --->"
+        + pduRequest.getCommandId());
+
+    if (pduRequest.getCommandId() == CMD_ID_SUBMIT_SM
+        || pduRequest.getCommandId() == CMD_ID_DELIVER_SM
+        || pduRequest.getCommandId() == CMD_ID_DATA_SM) {
+
+      BaseSm requestWithMessage = null;
+      try {
+        requestWithMessage = (BaseSm) pduRequest;
+      } catch (Exception e) {
+        e.printStackTrace();
+        logger.error("ERROR " + pduRequest.getCommandId() + pduRequest.getCommandStatus());
+      }
+
+      byte[] byteMessage = requestWithMessage.getShortMessage();
+      String message = CharsetUtil.decode(byteMessage, charset);
+      System.out.println(charset);
+      logger.info("You recieve a messege ----> " + message + " <---- , dest adress - "
+          + requestWithMessage.getDestAddress() + ", delivery adress - "
+          + requestWithMessage.getSourceAddress() + " charset - "+ charset);
     }
 
-    public TestSmppSessionHandlerDM(SmppSession session) {
-        this.sessionRef = new WeakReference<SmppSession>(session);
-    }
+    SmppSession session = sessionRef.get();
 
-    @Override
-    public PduResponse firePduRequestReceived(PduRequest pduRequest) {
-        // logger.info(pduRequest.getCommandId());
+    PduResponse response = pduRequest.createResponse();
 
-        // decode shortMessage
-        if (pduRequest.getCommandId() == CMD_ID_SUBMIT_SM ||
-                pduRequest.getCommandId() == CMD_ID_DELIVER_SM ||
-                pduRequest.getCommandId() == CMD_ID_DATA_SM)
-        {
+    // sendMoMessage(session,shortMessage, dataCoding);
 
-            BaseSm requestWithMessage = (BaseSm) pduRequest;
+    return response;
+  }
 
-            byte[] byteMessage = requestWithMessage.getShortMessage();
-            String message = CharsetUtil.decode(byteMessage, charset);
-            System.out.println(charset);
-            logger.info("You recieve a messege ----> " + message + " <---- , dest adress - " +
-                    requestWithMessage.getDestAddress() + ", delivery adress - " + requestWithMessage.getSourceAddress() +
-                    " charset - " + charset);
-        }
+  private void sendDeliveryReceipt(SmppSession session, Address mtDestinationAddress,
+      Address mtSourceAddress, byte dataCoding) {
 
-        SmppSession session = sessionRef.get();
+    // DeliverSm deliver = new DeliverSm();
+    // deliver.setEsmClass(SmppConstants.ESM_CLASS_MT_SMSC_DELIVERY_RECEIPT);
+    // deliver.setSourceAddress(mtDestinationAddress);
+    // deliver.setDestAddress(mtSourceAddress);
+    // deliver.setDataCoding(dataCoding);
+    // sendRequestPdu(session, deliver);
+  }
 
-        PduResponse response = pduRequest.createResponse();
+  /////////////////// Getters, setters, etc////////////////////////
 
-        // sendMoMessage(session,shortMessage, dataCoding);
+  public TestSmppSessionHandlerDM setName(String name) {
+    this.name = name;
+    return this;
+  }
 
-        return response;
-    }
+  public String getName() {
+    return name;
+  }
 
-    private void sendDeliveryReceipt(SmppSession session, Address mtDestinationAddress, Address mtSourceAddress, byte dataCoding) {
-
-//        DeliverSm deliver = new DeliverSm();
-//        deliver.setEsmClass(SmppConstants.ESM_CLASS_MT_SMSC_DELIVERY_RECEIPT);
-//        deliver.setSourceAddress(mtDestinationAddress);
-//        deliver.setDestAddress(mtSourceAddress);
-//        deliver.setDataCoding(dataCoding);
-//        sendRequestPdu(session, deliver);
-
-    }
-
-    /////////////////// Getters, setters, etc////////////////////////
-
-    public TestSmppSessionHandlerDM setName(String name) {
-        this.name = name;
-        return this;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public TestSmppSessionHandlerDM setSession(SmppSession session) {
-        this.sessionRef = new WeakReference<SmppSession>(session);
-        return this;
-    }
+  public TestSmppSessionHandlerDM setSession(SmppSession session) {
+    this.sessionRef = new WeakReference<SmppSession>(session);
+    return this;
+  }
 }
-
 
 

@@ -21,5 +21,6 @@ public class DefaultSmppServerConfiguration extends SmppServerConfiguration {
             setDefaultWindowWaitTimeout(getDefaultRequestExpiryTimeout());
             setDefaultSessionCountersEnabled(true);
             setJmxEnabled(true);
+
         }
 }
